@@ -21,12 +21,12 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] float timeLimitPerLife;
 
-    Vector3 InitialPos;
+    Vector3 initialPos;
     int currentPlayer = 0;
     int maxHeightReached = 0;
     int score = 0;
     float time = 0;
-
+    bool canActivateNext = false;
     private void Awake()
     {
         SetupTexts();
@@ -41,14 +41,13 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        InitialPos = laneManager.GetStarter().GetLanePosition();
+        initialPos = laneManager.GetStarter().GetLanePosition();
 
         ActivatePlayer(currentPlayer);
     }
 
     void OnVerticalMove(float dir)
     {
-        Debug.Log("Moved V");
         ILane lane;
         if(dir > 0)//Up
         {
@@ -72,7 +71,8 @@ public class GameManager : MonoBehaviour
                 currentPlayer++;
                 if (currentPlayer < playerControllers.Count)
                 {
-                    ActivatePlayer(currentPlayer);
+                    canActivateNext = true;
+
                 }
                 else
                 {
@@ -88,11 +88,10 @@ public class GameManager : MonoBehaviour
     {
         if (currentLifes <= 0) return;
         currentLifes--;
-        Debug.Log("Player Dead");
         laneManager.ResetIndex();
         livesText.text = currentLifes.ToString();
         playerControllers[currentPlayer].transform.parent = null;
-        playerControllers[currentPlayer].transform.position = InitialPos;
+        playerControllers[currentPlayer].transform.position = initialPos;
         time = 0;
         if(currentLifes <= 0)
         {
@@ -107,14 +106,13 @@ public class GameManager : MonoBehaviour
 
     void ActivatePlayer(int index)
     {
-        Debug.Log("ACTIVATED PLAYER");
         time = 0;
         laneManager.ResetIndex();
         maxHeightReached = 0;
-        playerControllers[currentPlayer].transform.position = InitialPos;
+        playerControllers[index].transform.position = initialPos;
         playerControllers[index].ActivatePlayer();
-        playerControllers[currentPlayer].onVerticalMove = null;
-        playerControllers[currentPlayer].onDeath = null;
+        playerControllers[index].onVerticalMove = null;
+        playerControllers[index].onDeath = null;
         playerControllers[index].onVerticalMove += OnVerticalMove;
         playerControllers[index].onDeath += OnPlayerDeath;
     }
@@ -146,6 +144,12 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
+        if (canActivateNext)
+        {
+            ActivatePlayer(currentPlayer);
+            canActivateNext = false;
+        }
+
         if (currentLifes <= 0) return;
         time += Time.deltaTime;
         timeText.text = Mathf.Round(timeLimitPerLife - time).ToString();

@@ -16,11 +16,18 @@ public class PlayerController : MonoBehaviour
 
     bool isActive = false;
 
+    BoxCollider2D collider2D;
+
+    private void Awake()
+    {
+        collider2D = GetComponent<BoxCollider2D>();
+    }
     void Update()
     {
         if (!isActive) return;
         if (Input.GetKeyDown(KeyCode.UpArrow))
         {
+            Debug.Log("UP " + gameObject.name);
             onVerticalMove?.Invoke(1);
         }
         else if(Input.GetKeyDown(KeyCode.DownArrow))
@@ -41,10 +48,12 @@ public class PlayerController : MonoBehaviour
     public void ActivatePlayer()
     {
         isActive = true;
+        collider2D.enabled = true;
     }
     public void DeActivatePlayer()
     {
         isActive = false;
+        collider2D.enabled = false;
     }
     public void MoveVertical(float posY)
     {
@@ -91,7 +100,7 @@ public class PlayerController : MonoBehaviour
         if (foundHazard && foundPlatForm == null)
         {
             onDeath?.Invoke();
-            Debug.Log("DEAD");
+            Debug.Log("DEAD from Overlap");
         }
     }
     private void OnTriggerEnter2D(Collider2D collision)
@@ -99,7 +108,7 @@ public class PlayerController : MonoBehaviour
         if (collision.CompareTag(HAZARD_TAG))
         {
             onDeath?.Invoke();
-            Debug.Log("DEAD From Trigger");
+            Debug.Log("DEAD From Trigger " + "this = " + gameObject.name + "  -  " + collision.gameObject.name);
         }
     }
 
